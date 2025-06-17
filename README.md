@@ -8,7 +8,7 @@ Instrument your Unity Engine project with Aptabase, an Open Source, Privacy-Firs
 
 You can install the package via [Unity Package Manager](https://docs.unity3d.com/Manual/upm-ui.html).
 
-Go to `Window` > `Package Manager` > `+` > `Add Package from git URL` and enter https://github.com/aptabase/aptabase-unity.git
+Go to `Window` > `Package Manager` > `+` > `Add Package from git URL` and enter https://github.com/RamiAhmed/aptabase-unity.git
 
 ## Project settings
 
@@ -49,3 +49,7 @@ A few important notes:
 ## Preparing for Submission to Apple App Store
 
 When submitting your app to the Apple App Store, you'll need to fill out the `App Privacy` form. You can find all the answers on our [How to fill out the Apple App Privacy when using Aptabase](https://aptabase.com/docs/apple-app-privacy) guide.
+
+## NOTE
+
+This fork was made to eliminate some of the memory allocations that aptabase-unity causes, and handles cancellation a bit better.

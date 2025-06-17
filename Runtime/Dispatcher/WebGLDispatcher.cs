@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AptabaseSDK.TinyJson;
 
@@ -40,7 +41,7 @@ namespace AptabaseSDK
                 _events.Enqueue(eventData);
         }
 
-        public async void Flush()
+        public async Task Flush(CancellationToken cancellationToken = default)
         {
             if (_flushInProgress || _events.Count <= 0)
                 return;
@@ -54,7 +55,7 @@ namespace AptabaseSDK
                 var eventToSend = _events.Dequeue();
                 try
                 {
-                    var result = await SendEvent(eventToSend);
+                    var result = await SendEvent(eventToSend, cancellationToken);
                     if (!result) failedEvents.Add(eventToSend);
                 }
                 catch
@@ -62,7 +63,7 @@ namespace AptabaseSDK
                     failedEvents.Add(eventToSend);
                 }
 
-            } while (_events.Count > 0);
+            } while (_events.Count > 0 && !cancellationToken.IsCancellationRequested);
             
             if (failedEvents.Count > 0) 
                 Enqueue(failedEvents);
@@ -70,10 +71,10 @@ namespace AptabaseSDK
             _flushInProgress = false;
         }
         
-        private static async Task<bool> SendEvent(Event eventData)
+        private static async Task<bool> SendEvent(Event eventData, CancellationToken cancellationToken)
         {
             var webRequest = _webRequestHelper.CreateWebRequest(_apiURL, _appKey, _environment, eventData.ToJson());
-            var result = await _webRequestHelper.SendWebRequestAsync(webRequest);
+            var result = await _webRequestHelper.SendWebRequestAsync(webRequest, cancellationToken);
             return result;
         }
     }

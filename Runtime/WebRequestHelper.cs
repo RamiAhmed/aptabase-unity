@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -22,23 +23,17 @@ namespace AptabaseSDK
             return webRequest;
         }
         
-        public async Task<bool> SendWebRequestAsync(UnityWebRequest request)
+        public async Task<bool> SendWebRequestAsync(UnityWebRequest request, CancellationToken cancellationToken)
         {
             var requestOp = request.SendWebRequest();
-            while (!requestOp.isDone)
+            while (!requestOp.isDone && !cancellationToken.IsCancellationRequested)
                 await Task.Yield();
 
             var success = requestOp.webRequest.result == UnityWebRequest.Result.Success;
-            if (success)
-            {
-                request.Dispose();
-            }
-            else
-            {
-                Debug.LogWarning($"Failed to perform web request due to {requestOp.webRequest.responseCode} and response body {requestOp.webRequest.error}");
-                request.Dispose();
-            }
+            if (!success)
+                Debug.LogWarning($"Failed to perform web request due to {requestOp.webRequest.responseCode} and response body {requestOp.webRequest.error}, result: {requestOp.webRequest.result}");
 
+            request.Dispose();
             return success;
         }
     }

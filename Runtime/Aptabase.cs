@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Pool;
 using Random = UnityEngine.Random;
 
 namespace AptabaseSDK
@@ -13,19 +14,20 @@ namespace AptabaseSDK
         private static IDispatcher _dispatcher;
         private static EnvironmentInfo _env;
         private static Settings _settings;
-        
+
         private static DateTime _lastTouched = DateTime.UtcNow;
         private static string _baseURL;
-        
+
         private static readonly TimeSpan _sessionTimeout = TimeSpan.FromMinutes(60);
+
         private static readonly Dictionary<string, string> _hosts = new()
         {
             { "US", "https://us.aptabase.com" },
             { "EU", "https://eu.aptabase.com" },
             { "DEV", "http://localhost:3000" },
-            { "SH", "" },
+            { "SH", "" }
         };
-        
+
         private static int _flushTimer;
         private static CancellationTokenSource _pollingCancellationTokenSource;
 
@@ -39,9 +41,9 @@ namespace AptabaseSDK
                 Debug.LogWarning("Aptabase Settings not found. Tracking will be disabled");
                 return;
             }
-            
+
             var key = _settings.AppKey;
-            
+
             var parts = key.Split("-");
             if (parts.Length != 3 || !_hosts.ContainsKey(parts[1]))
             {
@@ -50,60 +52,59 @@ namespace AptabaseSDK
             }
 
             _env = Environment.GetEnvironmentInfo(Version.GetVersionInfo(_settings));
-            
+
             _baseURL = GetBaseUrl(parts[1]);
-            
-            #if UNITY_WEBGL
-                _dispatcher = new WebGLDispatcher(_settings.AppKey, _baseURL, _env);
-            #else
-                _dispatcher = new Dispatcher(_settings.AppKey, _baseURL, _env);
-            #endif
-            
+
+#if UNITY_WEBGL
+            _dispatcher = new WebGLDispatcher(_settings.AppKey, _baseURL, _env);
+#else
+            _dispatcher = new Dispatcher(_settings.AppKey, _baseURL, _env);
+#endif
+
             //create listener
             var eventFocusHandler = new GameObject("AptabaseService");
             eventFocusHandler.AddComponent<AptabaseService>();
         }
-        
-        private static async void StartPolling(int flushTimer)
+
+        private static async Task StartPolling(int flushTimer)
         {
             StopPolling();
 
             _flushTimer = flushTimer;
             _pollingCancellationTokenSource = new CancellationTokenSource();
-            
+
             while (_pollingCancellationTokenSource is { IsCancellationRequested: false })
-            {
                 try
                 {
                     await Task.Delay(_flushTimer, _pollingCancellationTokenSource.Token);
-                    Flush();
+                    await Flush();
                 }
                 catch (TaskCanceledException)
                 {
                     break;
                 }
-            }
         }
 
         private static void StopPolling()
         {
             if (_flushTimer <= 0)
                 return;
-            
+
             _pollingCancellationTokenSource?.Cancel();
+            _pollingCancellationTokenSource?.Dispose();
             _pollingCancellationTokenSource = null;
             _flushTimer = 0;
         }
-        
-        public static void OnApplicationFocus(bool hasFocus)
+
+        public static async void OnApplicationFocus(bool hasFocus)
         {
             if (hasFocus)
             {
-                StartPolling(GetFlushInterval());
+                await StartPolling(GetFlushInterval());
             }
             else
             {
-                Flush();
+                await Flush();
                 StopPolling();
             }
         }
@@ -118,14 +119,15 @@ namespace AptabaseSDK
             _lastTouched = now;
             return _sessionId;
         }
-        
+
         private static string GetBaseUrl(string region)
         {
             if (region == "SH")
             {
                 if (string.IsNullOrEmpty(_settings.SelfHostURL))
                 {
-                    Debug.LogWarning("Host parameter must be defined when using Self-Hosted App Key. Tracking will be disabled.");
+                    Debug.LogWarning(
+                        "Host parameter must be defined when using Self-Hosted App Key. Tracking will be disabled.");
                     return null;
                 }
 
@@ -135,18 +137,22 @@ namespace AptabaseSDK
             return _hosts[region];
         }
 
-        public static void Flush()
+        public static Task Flush(CancellationToken cancellationToken = default)
         {
-            _dispatcher.Flush();
+            return _dispatcher.Flush(cancellationToken);
         }
 
-        public static void TrackEvent(string eventName, Dictionary<string, object> props = null)
+        public static void TrackEvent(string eventName, Dictionary<string, object> eventProps = null)
         {
             if (string.IsNullOrEmpty(_baseURL))
                 return;
-            
-            props ??= new Dictionary<string, object>();
-            var eventData = new Event()
+
+            var props = DictionaryPool<string, object>.Get();
+            if (eventProps != null)
+                foreach (var prop in eventProps)
+                    props.Add(prop.Key, prop.Value);
+
+            var eventData = new Event
             {
                 timestamp = DateTime.UtcNow.ToString("o"),
                 sessionId = EvalSessionId(),
@@ -154,7 +160,7 @@ namespace AptabaseSDK
                 systemProps = _env,
                 props = props
             };
-            
+
             _dispatcher.Enqueue(eventData);
         }
 
