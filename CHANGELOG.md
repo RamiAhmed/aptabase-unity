@@ -1,3 +1,8 @@
+## 0.2.5
+- Reduced memory allocations by utilizing ListPool and DictionaryPool
+- Flush method properly returns a Task
+- CancellationToken handled all the way through to the WebRequest
+
 ## 0.2.4
 
 - Fixed memory leak with event errors
