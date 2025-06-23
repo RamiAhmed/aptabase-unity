@@ -101,7 +101,7 @@ namespace AptabaseSDK.Services
                 }
                 catch (OperationCanceledException)
                 {
-                    Debug.Log("Analytics flushing cancelled");
+                    Debug.Log("Aptabase analytics flushing cancelled");
                     break;
                 }
                 catch (Exception ex)
