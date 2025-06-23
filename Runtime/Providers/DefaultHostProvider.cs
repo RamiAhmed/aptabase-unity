@@ -6,7 +6,7 @@ namespace AptabaseSDK.Providers
 {
     public class DefaultHostProvider : IHostProvider
     {
-        protected static readonly Dictionary<string, string> Hosts = new()
+        private static readonly Dictionary<string, string> Hosts = new()
         {
             { "US", "https://us.aptabase.com" },
             { "EU", "https://eu.aptabase.com" },
@@ -14,14 +14,14 @@ namespace AptabaseSDK.Providers
             { "SH", "" }
         };
 
-        protected readonly AptabaseSettings _settings;
+        private readonly AptabaseSettings _settings;
 
         public DefaultHostProvider(AptabaseSettings settings)
         {
             _settings = settings;
         }
 
-        public virtual string GetHost()
+        public string GetHost()
         {
             var key = _settings.AppKey;
 
@@ -33,7 +33,7 @@ namespace AptabaseSDK.Providers
             return null;
         }
 
-        protected virtual string GetBaseUrl(string region)
+        private string GetBaseUrl(string region)
         {
             if (region != "SH")
                 return Hosts[region];

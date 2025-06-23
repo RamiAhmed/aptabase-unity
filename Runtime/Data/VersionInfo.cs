@@ -4,7 +4,10 @@ namespace AptabaseSDK.Data
 {
     public class VersionInfo
     {
-        private const string SDKVersion = "Aptabase.Unity@0.2.4"; // TODO: better way to manage this versioning?
+        private static readonly string SDKVersion = $"Aptabase.Unity@{typeof(VersionInfo).Assembly.GetName().Version}";
+        
+        public string AppBuildNumber;
+        public string AppVersion;
 
         public VersionInfo(string appVersion = null, string appBuildNumber = null)
         {
@@ -13,7 +16,5 @@ namespace AptabaseSDK.Data
         }
 
         public string SdkVersion { get; } = SDKVersion;
-        public string AppVersion;
-        public string AppBuildNumber;
     }
 }

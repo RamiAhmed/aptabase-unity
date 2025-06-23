@@ -5,10 +5,10 @@ namespace AptabaseSDK.Providers
 {
     public class DefaultSessionIdProvider : ISessionIdProvider
     {
-        protected readonly TimeSpan _timeout;
+        private readonly TimeSpan _timeout;
 
-        protected DateTime _lastUpdate;
-        protected string _sessionId;
+        private DateTime _lastUpdate;
+        private string _sessionId;
 
         public DefaultSessionIdProvider(AptabaseSettings settings)
             : this(TimeSpan.FromMinutes(settings.SessionTimeoutMinutes))
@@ -19,11 +19,10 @@ namespace AptabaseSDK.Providers
         {
             _timeout = timeout;
 
-            _lastUpdate = DateTime.UtcNow;
-            _sessionId = Guid.NewGuid().ToString();
+            ResetSessionId();
         }
 
-        public virtual string GetSessionId()
+        public string GetSessionId()
         {
             if (DateTime.UtcNow - _lastUpdate > _timeout)
                 _sessionId = Guid.NewGuid().ToString();
@@ -32,13 +31,13 @@ namespace AptabaseSDK.Providers
             return _sessionId;
         }
 
-        public virtual void ResetSessionId()
+        public void ResetSessionId()
         {
             _sessionId = Guid.NewGuid().ToString();
             _lastUpdate = DateTime.UtcNow;
         }
 
-        public virtual void SetSessionId(string sessionId)
+        public void SetSessionId(string sessionId)
         {
             _sessionId = sessionId;
             _lastUpdate = DateTime.UtcNow;

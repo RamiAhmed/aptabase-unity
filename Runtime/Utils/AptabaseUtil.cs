@@ -2,27 +2,23 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AptabaseSDK.Configuration;
+using AptabaseSDK.Services;
 using UnityEngine;
 
 namespace AptabaseSDK.Utils
 {
     public static class AptabaseUtil
     {
-        private static Services.AptabaseService _service;
+        private static AptabaseService _service;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void AutoInitialize()
         {
             var settings = Resources.Load<AptabaseSettings>(nameof(AptabaseSettings));
-            if (settings == null)
-                return;
-
-            if (settings.Mode != AptabaseSettings.RunMode.Automatic)
-                return;
-
-            Initialize(settings);
+            if (settings != null && settings.Mode == AptabaseSettings.RunMode.Automatic)
+                Initialize(settings);
         }
-
+        
         public static void Initialize(AptabaseSettings settings)
         {
             if (_service != null)
@@ -31,7 +27,7 @@ namespace AptabaseSDK.Utils
                 return;
             }
 
-            _service = new Services.AptabaseService(settings);
+            _service = new AptabaseService(settings);
             _service.StartPolling();
 
             Application.quitting += OnQuit;

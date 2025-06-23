@@ -1,12 +1,14 @@
-﻿namespace AptabaseSDK.Providers
+﻿using AptabaseSDK.Data;
+
+namespace AptabaseSDK.Providers
 {
     public class DefaultEnvironmentProvider : IEnvironmentProvider
     {
-        protected Data.Environment _cachedEnvironment;
+        private Environment _cachedEnvironment;
 
-        public virtual Data.Environment Get()
+        public Environment Get()
         {
-            return _cachedEnvironment ??= new Data.Environment();
+            return _cachedEnvironment ??= new Environment();
         }
     }
 }

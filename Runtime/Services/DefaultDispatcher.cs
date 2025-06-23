@@ -7,45 +7,45 @@ using AptabaseSDK.Providers;
 using AptabaseSDK.TinyJson;
 using UnityEngine;
 using Utils;
+using Event = AptabaseSDK.Data.Event;
 
 namespace AptabaseSDK.Services
 {
     public class DefaultDispatcher : IDispatcher
     {
-        protected const string EventsEndpoint = "/api/v0/events";
-        protected const int MaxBatchSize = 25;
+        private const string EventsEndpoint = "/api/v0/events";
 
-        protected readonly string _apiUrl;
-        protected readonly Queue<Data.Event> _events;
-        protected readonly List<Data.Event> _failedEvents;
-        protected readonly int _maxBatchSize;
-        protected readonly List<Data.Event> _pendingEvents;
-        protected readonly AptabaseSettings _settings;
+        private readonly int _maxBatchSize;
+        private readonly Queue<Event> _events;
+        private readonly List<Event> _failedEvents;
+        private readonly List<Event> _pendingEvents;
 
-        protected bool _flushInProgress;
+        protected readonly string ApiUrl;
+        protected readonly AptabaseSettings Settings;
+
+        private bool _flushInProgress;
 
         public DefaultDispatcher(
             IHostProvider hostProvider,
             AptabaseSettings settings,
-            int maxBatchSize = MaxBatchSize)
+            int maxBatchSize = 25)
         {
-            _settings = settings;
+            Settings = settings;
             _maxBatchSize = maxBatchSize;
 
-            _events = new Queue<Data.Event>(40);
-            _failedEvents = new List<Data.Event>(10);
-            _pendingEvents = new List<Data.Event>(MaxBatchSize);
+            _events = new Queue<Event>(50);
+            _failedEvents = new List<Event>(20);
+            _pendingEvents = new List<Event>(_maxBatchSize);
 
-            _apiUrl = $"{hostProvider.GetHost()}{EventsEndpoint}";
+            ApiUrl = $"{hostProvider.GetHost()}{EventsEndpoint}";
         }
 
-        public virtual async Task Flush(CancellationToken cancellationToken)
+        public async Task Flush(CancellationToken cancellationToken)
         {
             if (_flushInProgress || _events.Count == 0)
                 return;
 
             _flushInProgress = true;
-            _failedEvents.Clear();
 
             do
             {
@@ -59,7 +59,7 @@ namespace AptabaseSDK.Services
                         _pendingEvents.Add(evt);
                     }
 
-                    if (await TrySendPendingEvents(cancellationToken))
+                    if (await TrySendEvents(_pendingEvents, cancellationToken))
                         continue;
 
                     // If sending failed, add pending events to failed list
@@ -93,20 +93,21 @@ namespace AptabaseSDK.Services
             foreach (var evt in _failedEvents)
                 _events.Enqueue(evt);
 
+            _failedEvents.Clear();
             _flushInProgress = false;
         }
 
-        public virtual void Enqueue(Data.Event data)
+        public virtual void Enqueue(Event data)
         {
             _events.Enqueue(data);
         }
 
-        protected virtual Task<bool> TrySendPendingEvents(CancellationToken cancellationToken)
+        protected virtual Task<bool> TrySendEvents(List<Event> events, CancellationToken cancellationToken)
         {
             return WebRequestUtil.CreateAndSendWebRequestAsync(
-                _apiUrl,
-                _settings.AppKey,
-                _pendingEvents.ToJson(),
+                ApiUrl,
+                Settings.AppKey,
+                events.ToJson(),
                 cancellationToken);
         }
     }

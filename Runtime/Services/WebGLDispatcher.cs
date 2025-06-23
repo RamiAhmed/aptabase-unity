@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AptabaseSDK.Configuration;
 using AptabaseSDK.Data;
@@ -10,7 +11,7 @@ namespace AptabaseSDK.Services
 {
     public class WebGLDispatcher : DefaultDispatcher
     {
-        protected readonly IEnvironmentProvider _environmentProvider;
+        private readonly IEnvironmentProvider _environmentProvider;
 
         public WebGLDispatcher(
             IHostProvider hostProvider,
@@ -27,12 +28,12 @@ namespace AptabaseSDK.Services
             _ = Flush(CancellationToken.None);
         }
 
-        protected override Task<bool> TrySendPendingEvents(CancellationToken cancellationToken)
+        protected override Task<bool> TrySendEvents(List<Event> events, CancellationToken cancellationToken)
         {
             var request = WebRequestUtil.CreateWebRequest(
-                _apiUrl,
-                _settings.AppKey,
-                _pendingEvents.ToJson());
+                ApiUrl,
+                Settings.AppKey,
+                events.ToJson());
 
 // webgl needs the default user-agent header. All other platforms we create manually
 #if !UNITY_WEBGL

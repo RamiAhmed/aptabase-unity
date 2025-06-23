@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using AptabaseSDK;
 using AptabaseSDK.Configuration;
+using AptabaseSDK.Services;
 using UnityEngine;
-using AptabaseService = AptabaseSDK.Services.AptabaseService;
 
 namespace Behaviours
 {
@@ -52,6 +51,11 @@ namespace Behaviours
         public void TrackEvent(string eventName, Dictionary<string, object> eventData = null)
         {
             Service.TrackEvent(eventName, eventData);
+        }
+
+        public Task Flush()
+        {
+            return Flush(destroyCancellationToken);
         }
 
         public Task Flush(CancellationToken cancellationToken)

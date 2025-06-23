@@ -5,19 +5,19 @@ using System.Threading.Tasks;
 using AptabaseSDK.Configuration;
 using AptabaseSDK.Providers;
 using UnityEngine;
+using Event = AptabaseSDK.Data.Event;
 
 namespace AptabaseSDK.Services
 {
     public class AptabaseService : IDisposable
     {
-        protected readonly IDispatcher _dispatcher;
-        protected readonly IEnvironmentProvider _environmentProvider;
-        protected readonly IHostProvider _hostProvider;
-        protected readonly ISessionIdProvider _sessionIdProvider;
-        protected readonly AptabaseSettings _settings;
+        private readonly IDispatcher _dispatcher;
+        private readonly IEnvironmentProvider _environmentProvider;
+        private readonly ISessionIdProvider _sessionIdProvider;
+        private readonly AptabaseSettings _settings;
 
-        protected CancellationTokenSource _cancellationTokenSource;
-        protected TimeSpan _pollingInterval;
+        private CancellationTokenSource _cancellationTokenSource;
+        private TimeSpan _pollingInterval;
 
         public AptabaseService(
             AptabaseSettings settings,
@@ -30,13 +30,13 @@ namespace AptabaseSDK.Services
 
             _environmentProvider = environmentProvider ?? new DefaultEnvironmentProvider();
             _sessionIdProvider = sessionIdProvider ?? new DefaultSessionIdProvider(settings);
-            _hostProvider = hostProvider ?? new DefaultHostProvider(settings);
 
+            var hp = hostProvider ?? new DefaultHostProvider(settings);
             _dispatcher = dispatcher ??
 #if UNITY_WEBGL
-                          new WebGLDispatcher(_hostProvider, _environmentProvider, settings);
+                          new WebGLDispatcher(hp, _environmentProvider, settings);
 #else
-                          new DefaultDispatcher(_hostProvider, settings);
+                          new DefaultDispatcher(hp, settings);
 #endif
         }
 
@@ -48,9 +48,9 @@ namespace AptabaseSDK.Services
             StopPolling();
         }
 
-        public virtual void TrackEvent(string eventName, Dictionary<string, object> eventProps = null)
+        public void TrackEvent(string eventName, Dictionary<string, object> eventProps = null)
         {
-            var eventData = Data.Event.Get();
+            var eventData = Event.Get();
             eventData.timestamp = DateTime.UtcNow.ToString("o");
             eventData.sessionId = _sessionIdProvider.GetSessionId();
             eventData.systemProps = _environmentProvider.Get();
@@ -63,17 +63,17 @@ namespace AptabaseSDK.Services
             _dispatcher.Enqueue(eventData);
         }
 
-        public virtual Task Flush(CancellationToken cancellationToken)
+        public Task Flush(CancellationToken cancellationToken)
         {
             return _dispatcher.Flush(cancellationToken);
         }
 
-        public virtual void StartPolling(uint flushIntervalSeconds = 0)
+        public void StartPolling(uint flushIntervalSeconds = 0)
         {
-            StopPolling();
-
             if (!_settings.AutoFlush)
                 return;
+
+            StopPolling();
 
             _pollingInterval = TimeSpan.FromSeconds(
                 flushIntervalSeconds != 0
@@ -84,17 +84,16 @@ namespace AptabaseSDK.Services
             Task.Run(PollingJob, _cancellationTokenSource.Token);
         }
 
-        public virtual void StopPolling()
+        public void StopPolling()
         {
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = null;
         }
 
-        protected virtual async Task PollingJob()
+        private async Task PollingJob()
         {
             while (!_cancellationTokenSource.IsCancellationRequested)
-            {
                 try
                 {
                     await _dispatcher.Flush(_cancellationTokenSource.Token);
@@ -110,7 +109,6 @@ namespace AptabaseSDK.Services
                     Debug.LogError("Error during aptabase analytics polling");
                     Debug.LogError(ex);
                 }
-            }
         }
     }
 }
