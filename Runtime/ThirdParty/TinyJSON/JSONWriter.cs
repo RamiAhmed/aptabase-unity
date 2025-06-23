@@ -13,6 +13,7 @@ namespace AptabaseSDK.TinyJson
     //- Will only output public fields and property getters on objects
     public static class JSONWriter
     {
+        // TODO: replace with newtonsoft?
         public static string ToJson(this object item)
         {
             StringBuilder stringBuilder = new StringBuilder();
