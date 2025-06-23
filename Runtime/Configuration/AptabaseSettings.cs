@@ -53,7 +53,9 @@ namespace AptabaseSDK.Configuration
         [Min(1)] 
         [Space]
         [SerializeField]
+        #pragma warning disable CS0414
         private int _flushIntervalSeconds = 60;
+        #pragma warning restore CS0414
 
         [Tooltip("The interval in seconds to flush events in the Unity Editor while developing.")] 
         [Min(1)]
