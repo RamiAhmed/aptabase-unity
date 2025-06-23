@@ -4,7 +4,7 @@ using UnityEngine.Pool;
 
 namespace AptabaseSDK.Data
 {
-    public class Event : IDisposable
+    public class AptabaseEvent : IDisposable
     {
         // TODO: Pascal case fields?
 
@@ -13,11 +13,11 @@ namespace AptabaseSDK.Data
         public string timestamp;
         
         public Dictionary<string, object> props;
-        public Environment systemProps;
+        public EnvironmentInfo systemProps;
 
-        public static Event Get()
+        public static AptabaseEvent Get()
         {
-            var evt = GenericPool<Event>.Get();
+            var evt = GenericPool<AptabaseEvent>.Get();
             evt.props = DictionaryPool<string, object>.Get();
             
             return evt;
@@ -32,7 +32,7 @@ namespace AptabaseSDK.Data
             
             props.Clear();
             DictionaryPool<string, object>.Release(props);
-            GenericPool<Event>.Release(this);
+            GenericPool<AptabaseEvent>.Release(this);
         }
     }
 }

@@ -1,6 +1,6 @@
 {
     "name": "Aptabase.Runtime",
-    "rootNamespace": "",
+    "rootNamespace": "AptabaseSDK",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

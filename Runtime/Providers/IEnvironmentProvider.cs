@@ -1,7 +1,9 @@
-﻿namespace AptabaseSDK.Providers
+﻿using AptabaseSDK.Data;
+
+namespace AptabaseSDK.Providers
 {
     public interface IEnvironmentProvider
     {
-        Data.Environment Get();
+        EnvironmentInfo Get();
     }
 }

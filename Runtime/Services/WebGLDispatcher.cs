@@ -22,13 +22,13 @@ namespace AptabaseSDK.Services
             _environmentProvider = environmentProvider;
         }
 
-        public override void Enqueue(Event data)
+        public override void Enqueue(AptabaseEvent data)
         {
             base.Enqueue(data);
             _ = Flush(CancellationToken.None);
         }
 
-        protected override Task<bool> TrySendEvents(List<Event> events, CancellationToken cancellationToken)
+        protected override Task<bool> TrySendEvents(List<AptabaseEvent> events, CancellationToken cancellationToken)
         {
             var request = WebRequestUtil.CreateWebRequest(
                 ApiUrl,

@@ -4,11 +4,11 @@ namespace AptabaseSDK.Providers
 {
     public class DefaultEnvironmentProvider : IEnvironmentProvider
     {
-        private Environment _cachedEnvironment;
+        private EnvironmentInfo _cachedEnvironmentInfo;
 
-        public Environment Get()
+        public EnvironmentInfo Get()
         {
-            return _cachedEnvironment ??= new Environment();
+            return _cachedEnvironmentInfo ??= new EnvironmentInfo();
         }
     }
 }

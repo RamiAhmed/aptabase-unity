@@ -1,6 +1,6 @@
 {
     "name": "Aptabase.Editor",
-    "rootNamespace": "",
+    "rootNamespace": "AptabaseSDK.Editor",
     "references": [
         "GUID:5396a5b2678914e458f35e9153212530"
     ],

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AptabaseSDK.Configuration;
+using AptabaseSDK.Data;
 using AptabaseSDK.Providers;
 using UnityEngine;
-using Event = AptabaseSDK.Data.Event;
 
 namespace AptabaseSDK.Services
 {
@@ -50,7 +50,7 @@ namespace AptabaseSDK.Services
 
         public void TrackEvent(string eventName, Dictionary<string, object> eventProps = null)
         {
-            var eventData = Event.Get();
+            var eventData = AptabaseEvent.Get();
             eventData.timestamp = DateTime.UtcNow.ToString("o");
             eventData.sessionId = _sessionIdProvider.GetSessionId();
             eventData.systemProps = _environmentProvider.Get();

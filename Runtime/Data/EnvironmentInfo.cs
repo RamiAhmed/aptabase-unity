@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace AptabaseSDK.Data
 {
-    public class Environment
+    public class EnvironmentInfo
     {
         public string AppBuildNumber;
         public string AppVersion;
@@ -19,7 +19,7 @@ namespace AptabaseSDK.Data
         public string OsVersion;
         public string SdkVersion;
 
-        public Environment(
+        public EnvironmentInfo(
             VersionInfo versionInfo = null,
             OperatingSystemInfo osInfo = null,
             bool? isDebug = null)

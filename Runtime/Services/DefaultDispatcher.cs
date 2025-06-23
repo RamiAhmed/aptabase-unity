@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AptabaseSDK.Configuration;
+using AptabaseSDK.Data;
 using AptabaseSDK.Providers;
 using AptabaseSDK.TinyJson;
 using UnityEngine;
 using Utils;
-using Event = AptabaseSDK.Data.Event;
 
 namespace AptabaseSDK.Services
 {
@@ -16,9 +16,9 @@ namespace AptabaseSDK.Services
         private const string EventsEndpoint = "/api/v0/events";
 
         private readonly int _maxBatchSize;
-        private readonly Queue<Event> _events;
-        private readonly List<Event> _failedEvents;
-        private readonly List<Event> _pendingEvents;
+        private readonly Queue<AptabaseEvent> _events;
+        private readonly List<AptabaseEvent> _failedEvents;
+        private readonly List<AptabaseEvent> _pendingEvents;
 
         protected readonly string ApiUrl;
         protected readonly AptabaseSettings Settings;
@@ -33,9 +33,9 @@ namespace AptabaseSDK.Services
             Settings = settings;
             _maxBatchSize = maxBatchSize;
 
-            _events = new Queue<Event>(50);
-            _failedEvents = new List<Event>(20);
-            _pendingEvents = new List<Event>(_maxBatchSize);
+            _events = new Queue<AptabaseEvent>(50);
+            _failedEvents = new List<AptabaseEvent>(20);
+            _pendingEvents = new List<AptabaseEvent>(_maxBatchSize);
 
             ApiUrl = $"{hostProvider.GetHost()}{EventsEndpoint}";
         }
@@ -97,12 +97,12 @@ namespace AptabaseSDK.Services
             _flushInProgress = false;
         }
 
-        public virtual void Enqueue(Event data)
+        public virtual void Enqueue(AptabaseEvent data)
         {
             _events.Enqueue(data);
         }
 
-        protected virtual Task<bool> TrySendEvents(List<Event> events, CancellationToken cancellationToken)
+        protected virtual Task<bool> TrySendEvents(List<AptabaseEvent> events, CancellationToken cancellationToken)
         {
             return WebRequestUtil.CreateAndSendWebRequestAsync(
                 ApiUrl,
