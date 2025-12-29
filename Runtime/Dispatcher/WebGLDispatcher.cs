@@ -5,40 +5,28 @@ using AptabaseSDK.TinyJson;
 
 namespace AptabaseSDK
 {
-    public class WebGLDispatcher: IDispatcher
+    public class WebGLDispatcher : IDispatcher
     {
         private const string EVENT_ENDPOINT = "/api/v0/event";
-        
-        private static string _apiURL;
-        private static WebRequestHelper _webRequestHelper;
-        private static string _appKey;
-        private static EnvironmentInfo _environment;
-        
-        private bool _flushInProgress;
         private readonly Queue<Event> _events;
-        
+
+        private readonly WebRequestHelper _webRequestHelper;
+
+        private bool _flushInProgress;
+
         public WebGLDispatcher(string appKey, string baseURL, EnvironmentInfo env)
         {
-            //create event queue
+            // create the event queue
             _events = new Queue<Event>();
-            
-            //web request setup information
-            _apiURL = $"{baseURL}{EVENT_ENDPOINT}";
-            _appKey = appKey;
-            _environment = env;
-            _webRequestHelper = new WebRequestHelper();
+
+            // web request setup information
+            _webRequestHelper = new WebRequestHelper($"{baseURL}{EVENT_ENDPOINT}", appKey, env);
         }
-        
+
         public void Enqueue(Event data)
         {
             _events.Enqueue(data);
-            Flush();
-        }
-        
-        private void Enqueue(List<Event> data)
-        {
-            foreach (var eventData in data)
-                _events.Enqueue(eventData);
+            _ = Flush();
         }
 
         public async Task Flush(CancellationToken cancellationToken = default)
@@ -48,8 +36,8 @@ namespace AptabaseSDK
 
             _flushInProgress = true;
             var failedEvents = new List<Event>();
-            
-            //flush all events
+
+            // flush all events
             do
             {
                 var eventToSend = _events.Dequeue();
@@ -62,20 +50,23 @@ namespace AptabaseSDK
                 {
                     failedEvents.Add(eventToSend);
                 }
-
             } while (_events.Count > 0 && !cancellationToken.IsCancellationRequested);
-            
-            if (failedEvents.Count > 0) 
+
+            if (failedEvents.Count > 0)
                 Enqueue(failedEvents);
 
             _flushInProgress = false;
         }
-        
-        private static async Task<bool> SendEvent(Event eventData, CancellationToken cancellationToken)
+
+        private void Enqueue(List<Event> data)
         {
-            var webRequest = _webRequestHelper.CreateWebRequest(_apiURL, _appKey, _environment, eventData.ToJson());
-            var result = await _webRequestHelper.SendWebRequestAsync(webRequest, cancellationToken);
-            return result;
+            foreach (var eventData in data)
+                _events.Enqueue(eventData);
+        }
+
+        private async Task<bool> SendEvent(Event eventData, CancellationToken cancellationToken)
+        {
+            return await _webRequestHelper.CreateAndSendWebRequestAsync(eventData.ToJson(), cancellationToken);
         }
     }
 }

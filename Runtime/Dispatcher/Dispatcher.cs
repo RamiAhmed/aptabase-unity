@@ -14,26 +14,20 @@ namespace AptabaseSDK
 
         private const int MAX_BATCH_SIZE = 25;
 
-        private static string _apiURL;
-        private static WebRequestHelper _webRequestHelper;
-        private static string _appKey;
-        private static EnvironmentInfo _environment;
         private readonly Queue<Event> _events;
         private readonly List<Event> _failedEvents;
+        private readonly WebRequestHelper _webRequestHelper;
 
         private bool _flushInProgress;
 
         public Dispatcher(string appKey, string baseURL, EnvironmentInfo env)
         {
-            //create event queue
+            // create the event queue
             _events = new Queue<Event>();
             _failedEvents = new List<Event>(10);
 
-            //web request setup information
-            _apiURL = $"{baseURL}{EVENTS_ENDPOINT}";
-            _appKey = appKey;
-            _environment = env;
-            _webRequestHelper = new WebRequestHelper();
+            // web request setup information
+            _webRequestHelper = new WebRequestHelper($"{baseURL}{EVENTS_ENDPOINT}", appKey, env);
         }
 
         public void Enqueue(Event data)
@@ -49,7 +43,7 @@ namespace AptabaseSDK
             _flushInProgress = true;
             _failedEvents.Clear();
 
-            //flush all events
+            // flush all events
             do
             {
                 var eventsToSend = ListPool<Event>.Get();
@@ -89,11 +83,9 @@ namespace AptabaseSDK
                 _events.Enqueue(eventData);
         }
 
-        private static async Task<bool> SendEvents(List<Event> events, CancellationToken cancellationToken)
+        private async Task<bool> SendEvents(List<Event> events, CancellationToken cancellationToken)
         {
-            var webRequest = _webRequestHelper.CreateWebRequest(_apiURL, _appKey, _environment, events.ToJson());
-            var result = await _webRequestHelper.SendWebRequestAsync(webRequest, cancellationToken);
-            return result;
+            return await _webRequestHelper.CreateAndSendWebRequestAsync(events.ToJson(), cancellationToken);
         }
     }
 }
