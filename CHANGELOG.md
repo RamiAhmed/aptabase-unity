@@ -1,7 +1,8 @@
 ## 0.2.5
 - Reduced memory allocations by utilizing ListPool and DictionaryPool
-- Flush method properly returns a Task
+- Flush method properly returns a cancellable Task
 - CancellationToken handled all the way through to the WebRequest
+- Improved error handling and logging
 
 ## 0.2.4
 
