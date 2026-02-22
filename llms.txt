@@ -1,0 +1,93 @@
+# Aptabase Unity SDK
+
+> Privacy-first analytics for Unity games and apps. Track events with a simple static API — no MonoBehaviour setup required. Supports Android, iOS, macOS, Windows, Linux, and WebGL.
+
+## Overview
+
+- **Package:** com.aptabase (Unity Package Manager)
+- **Namespace:** AptabaseSDK
+- **Repo:** https://github.com/aptabase/aptabase-unity
+- **Unity version:** 2018.4+
+- **Platforms:** Android, iOS, iPadOS, macOS, Windows, Linux, WebGL
+
+## Installation
+
+Install via Unity Package Manager:
+
+1. Open `Window > Package Manager > + > Add package from git URL`
+2. Enter: `https://github.com/aptabase/aptabase-unity.git`
+
+## Project Settings
+
+After installing, configure your App Key:
+
+1. Open `Assets/Aptabase/Resources/AptabaseSettings` in the Inspector
+2. Set your `App Key` (found in the Aptabase dashboard under Instructions)
+3. For self-hosted instances (`A-SH-*` keys), fill in the `SelfHostURL` field
+
+The settings asset is auto-created on first import.
+
+## Initialization
+
+The SDK initializes automatically before scene load via `[RuntimeInitializeOnLoadMethod]`. No code is needed — just configure the settings asset.
+
+If settings are missing or the App Key is invalid, tracking is silently disabled with a console warning.
+
+## Track Events
+
+```csharp
+using AptabaseSDK;
+
+Aptabase.TrackEvent("app_started");
+```
+
+## Track Events with Properties
+
+```csharp
+Aptabase.TrackEvent("level_completed", new Dictionary<string, object>
+{
+    { "level", 42 },
+    { "score", 9500 },
+    { "difficulty", "hard" }
+});
+```
+
+Only string and number values are allowed in properties.
+
+## Manual Flush
+
+Events are batched and sent periodically. To flush immediately:
+
+```csharp
+Aptabase.Flush();
+```
+
+## Configuration
+
+All configuration is done via the `AptabaseSettings` ScriptableObject:
+
+| Field | Description |
+|-------|-------------|
+| `AppKey` | Required. Your Aptabase app key (e.g., `A-EU-0000000000`) |
+| `SelfHostURL` | URL for self-hosted instances (only for `A-SH-*` keys) |
+| `AppBuildNumber` | Optional platform-specific build number |
+| `EnableOverride` | Toggle to enable AppVersion and FlushInterval overrides |
+| `AppVersion` | Override `Application.version` (requires EnableOverride) |
+| `FlushInterval` | Custom flush interval in milliseconds (requires EnableOverride) |
+
+Default flush intervals: 60 seconds in production, 2 seconds in debug/editor builds.
+
+## Platform Notes
+
+- **Auto-initialization:** SDK initializes via `RuntimeInitializeOnLoadMethod(BeforeSceneLoad)` — no MonoBehaviour or `Awake()` setup needed
+- **Debug detection:** `Application.isEditor || Debug.isDebugBuild`
+- **WebGL:** Uses single-event dispatch (no batching) due to browser constraints
+- **Session timeout:** 60 minutes of inactivity starts a new session
+- **Max batch size:** 25 events per request (non-WebGL)
+- **Offline resilience:** Failed events are re-queued and retried on next flush
+- **Scene persistence:** SDK service is marked `DontDestroyOnLoad`
+- **Focus handling:** Events auto-flush when app loses focus; polling resumes on regain
+
+## Cross-Discovery
+
+For the full list of Aptabase SDKs and documentation, see: https://aptabase.com/llms.txt
