@@ -47,6 +47,12 @@ If you want to react to HttpStatusCodes received from the server, you can use:
 Aptabase.SetResponseListener((statusCode) => UnityEngine.Debug.Log($"Aptabase response status code: {statusCode}"));
 ```
 
+If you want to enable or disable the SDK (note: also starts/stops polling), you can use:
+```csharp
+Aptabase.SetEnabled(enabled);
+```
+It defaults to **enabled**.
+
 A few important notes:
 
 1. The SDK will automatically enhance the event with some useful information, like the OS, the app version, and other things.

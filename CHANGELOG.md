@@ -1,5 +1,6 @@
 ## 0.2.6
 - Added support for setting a "ResponseListener" via Aptabase.SetResponseListener. This allows you to receive callbacks with the HttpStatusCode for each event sent
+- Added support for enabling or disabling the SDK via Aptabase.SetEnabled. This starts/stops polling as well.
 
 ## 0.2.5
 - Reduced memory allocations by utilizing ListPool and DictionaryPool

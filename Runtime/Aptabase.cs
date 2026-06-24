@@ -29,6 +29,7 @@ namespace AptabaseSDK
             { "SH", "" }
         };
 
+        private static bool _isEnabled = true;
         private static int _flushTimer;
         private static CancellationTokenSource _pollingCancellationTokenSource;
 
@@ -79,6 +80,16 @@ namespace AptabaseSDK
             _dispatcher.SetResponseListener(onResponse);
         }
 
+        public static void SetEnabled(bool enabled)
+        {
+            _isEnabled = enabled;
+
+            if (!enabled)
+                StopPolling();
+            else
+                _ = StartPolling(GetFlushInterval());
+        }
+
         private static async Task StartPolling(int flushTimer)
         {
             StopPolling();
@@ -111,7 +122,8 @@ namespace AptabaseSDK
 
         public static void OnApplicationFocus(bool hasFocus)
         {
-            _ = hasFocus ? StartPolling(GetFlushInterval()) : Flush().ContinueWith(_ => StopPolling());
+            if (_isEnabled)
+                _ = hasFocus ? StartPolling(GetFlushInterval()) : Flush().ContinueWith(_ => StopPolling());
         }
 
         private static string EvalSessionId()
