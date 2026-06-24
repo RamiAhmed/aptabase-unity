@@ -1,3 +1,6 @@
+## 0.2.6
+- Added support for setting a "ResponseListener" via Aptabase.SetResponseListener. This allows you to receive callbacks with the HttpStatusCode for each event sent
+
 ## 0.2.5
 - Reduced memory allocations by utilizing ListPool and DictionaryPool
 - Flush method properly returns a cancellable Task

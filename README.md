@@ -33,9 +33,18 @@ Aptabase.TrackEvent("app_started", new Dictionary<string, object>
 });
 ```
 
-If you want to manually flush the event queue you can use 
+If you want to manually flush the event queue you can use:
+```csharp
+await Aptabase.Flush();
+```
+or
 ```csharp
 Aptabase.Flush();
+```
+
+If you want to react to HttpStatusCodes received from the server, you can use:
+```csharp
+Aptabase.SetResponseListener((statusCode) => UnityEngine.Debug.Log($"Aptabase response status code: {statusCode}"));
 ```
 
 A few important notes:
