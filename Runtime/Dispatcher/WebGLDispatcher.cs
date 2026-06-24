@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using AptabaseSDK.TinyJson;
@@ -21,6 +23,11 @@ namespace AptabaseSDK
 
             // web request setup information
             _webRequestHelper = new WebRequestHelper($"{baseURL}{EVENT_ENDPOINT}", appKey, env);
+        }
+
+        public void SetResponseListener(Action<HttpStatusCode> onResponse)
+        {
+            _webRequestHelper.SetResponseListener(onResponse);
         }
 
         public void Enqueue(Event data)

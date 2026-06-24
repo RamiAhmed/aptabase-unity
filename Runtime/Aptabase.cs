@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -67,6 +68,17 @@ namespace AptabaseSDK
             eventFocusHandler.AddComponent<AptabaseService>();
         }
 
+        public static void SetResponseListener(Action<HttpStatusCode> onResponse)
+        {
+            if (_dispatcher == null)
+            {
+                Debug.LogError("[AptabaseAnalytics] Aptabase is not initialized. Please check your settings.");
+                return;
+            }
+
+            _dispatcher.SetResponseListener(onResponse);
+        }
+
         private static async Task StartPolling(int flushTimer)
         {
             StopPolling();
@@ -75,7 +87,6 @@ namespace AptabaseSDK
             _pollingCancellationTokenSource = new CancellationTokenSource();
 
             while (_pollingCancellationTokenSource is { IsCancellationRequested: false })
-            {
                 try
                 {
                     await Task.Delay(_flushTimer, _pollingCancellationTokenSource.Token);
@@ -85,7 +96,6 @@ namespace AptabaseSDK
                 {
                     break;
                 }
-            }
         }
 
         private static void StopPolling()
