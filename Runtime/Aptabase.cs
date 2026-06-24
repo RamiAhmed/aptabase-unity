@@ -184,7 +184,7 @@ namespace AptabaseSDK
         private static int GetFlushInterval()
         {
             if (_settings.EnableOverride && _settings.FlushInterval > 0)
-                return Mathf.Max(0, _settings.FlushInterval);
+                return _settings.FlushInterval;
 
             return _env.isDebug ? 2000 : 60000;
         }
